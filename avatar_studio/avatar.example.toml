@@ -1,0 +1,78 @@
+# Copy to avatar.toml (git-ignored) and edit. Relative paths resolve
+# against this file's folder. API keys are read from the environment only:
+#   ELEVENLABS_API_KEY, HEYGEN_API_KEY
+
+[paths]
+voice_samples = "data/voice_samples"   # your raw recordings (.wav/.mp3/.m4a/.flac)
+voice_clean   = "data/voice_clean"     # written by `prep-voice`
+photo         = "data/photo.jpg"       # only checked; upload it in HeyGen for a Photo Avatar
+base_video    = "data/base_footage.mp4" # waist-up talking footage, for the local backend
+output_dir    = "output"
+
+[voice]
+# India data residency (needs a residency-enabled ElevenLabs workspace):
+# base_url = "https://api.in.residency.elevenlabs.io"
+base_url = "https://api.elevenlabs.io"
+voice_id = ""                  # filled into output/state.json by `clone-voice`; or paste one
+name = "My Voice (EN)"
+description = "Presentation register, Indian English"
+language = "en"                # label stored on the cloned voice
+remove_background_noise = false
+# eleven_multilingual_v2: steadiest for long-form English/Hindi/Tamil narration.
+# eleven_v3: most expressive, adds Malayalam/Telugu/Kannada; supports [excited]-style tags.
+model_id = "eleven_multilingual_v2"
+language_code = ""             # ISO 639-1, e.g. "ta"; ignored for multilingual_v2
+output_format = "mp3_44100_128"
+stability = 0.5
+similarity_boost = 0.8
+style = 0.0
+use_speaker_boost = true
+speed = 1.0
+max_chunk_chars = 2500
+
+[voice.replacements]           # spoken forms for jargon, applied before TTS
+"S/4HANA" = "S 4 HANA"
+"COBie" = "Cobie"
+"LOD" = "L O D"
+"BIM" = "bim"
+"IFC" = "I F C"
+"ACC" = "A C C"
+
+[video]
+backend = "heygen"             # "heygen" (hosted) or "local" (your GPU)
+
+[video.heygen]
+# "avatar" = Digital Twin trained on your footage (face + body, best realism)
+# "talking_photo" = Photo Avatar from a single photo
+character_type = "avatar"
+character_id = ""              # avatar_id / talking_photo_id from your HeyGen account
+avatar_style = "normal"
+width = 1280                   # 1920x1080 needs a plan that allows 1080p API renders
+height = 720
+background_color = ""          # e.g. "#F4F4F4"; empty keeps the avatar's own background
+poll_interval_s = 15
+timeout_s = 3600
+# Engine flags or fields from newer HeyGen docs go here without code changes:
+# extra_character_fields = { use_avatar_iv_model = true }
+
+[video.local]
+# Any video-to-video lip-sync model. {video} {audio} {output} become absolute
+# paths. LatentSync example; confirm flags against the README of your checkout.
+command = [
+  "python", "-m", "scripts.inference",
+  "--unet_config_path", "configs/unet/stage2.yaml",
+  "--inference_ckpt_path", "checkpoints/latentsync_unet.pt",
+  "--inference_steps", "20",
+  "--guidance_scale", "1.5",
+  "--video_path", "{video}",
+  "--audio_path", "{audio}",
+  "--video_out_path", "{output}",
+]
+workdir = ""                   # e.g. "D:/models/LatentSync"
+fit_base_video = true          # ping-pong loop/trim footage to the audio length
+timeout_s = 7200
+
+[output]
+label_enabled = true           # visible disclosure + MP4 metadata (IT Rules 2026)
+label_text = "AI-generated avatar"
+font_file = ""                 # optional TTF; Windows defaults to Arial

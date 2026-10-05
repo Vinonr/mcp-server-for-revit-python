@@ -12,3 +12,7 @@ wheels/
 *TODO.md
 .env
 CLAUDE.md
+# avatar_studio: personal biometric data, renders and IDs never go in git
+avatar.toml
+avatar_studio/data/
+avatar_studio/output/
